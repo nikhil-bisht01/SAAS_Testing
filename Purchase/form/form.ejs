@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Quotation - Higher India</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.1);
+            max-width: 450px;
+            width: 100%;
+        }
+        .company-logo {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        h2 {
+            text-align: center;
+            color: #202124;
+        }
+        label {
+            font-weight: 600;
+            display: block;
+            margin-top: 12px;
+            color: #444;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+        button {
+            width: 100%;
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 12px;
+            margin-top: 20px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .popup {
+            display: none;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 1000;
+        }
+        .popup-icon {
+            font-size: 50px;
+        }
+        #quotation-form{
+            display: flex;
+            flex-direction: column;
+        }
+        #quotation-form > input,textarea{
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="company-logo">
+            <img src="/Purchase/form/1.png" alt="Higher India" style="max-width: 200px;">
+        </div>
+        <h2>Submit Your Quotation</h2>
+        
+        <!-- Success Popup -->
+        <div id="success-popup" class="popup">
+            <div class="popup-icon" style="color: green;">✅</div>
+            <div class="popup-content">
+                <p id="success-message">Quotation submitted successfully!</p>
+                <button onclick="redirectToThankYou()">OK</button>
+            </div>
+        </div>
+
+        <!-- Error Popup -->
+        <div id="error-popup" class="popup">
+            <div class="popup-icon">❌</div>
+            <div class="popup-content">
+                <p id="error-message"></p>
+                <button onclick="closePopup()">OK</button>
+            </div>
+        </div>
+
+        <form id="quotation-form" action="/purchase/quotations" method="POST">
+            <input type="hidden" name="purchase_request_id" value="<%= indentingId %>">
+            <input type="hidden" name="supplier_id" value="<%= supplierId %>">
+            
+            <label>Supplier Price:</label>
+            <input type="number" name="supplier_price" required placeholder="Enter price">
+
+            <label>Delivery Time:</label>
+            <input type="text" name="supplier_delivery_time" required placeholder="e.g., 30 days">
+
+            <label>Terms & Conditions:</label>
+            <textarea name="supplier_terms_conditions" required placeholder="Mention terms and conditions"></textarea>
+
+            <label>Remarks:</label>
+            <textarea name="supplier_remarks" placeholder="Any additional remarks"></textarea>
+
+            <button type="submit">Submit Quotation</button>
+        </form>
+    </div>
+
+    <script>
+        function showPopup(message, isSuccess = false) {
+            if (isSuccess) {
+                document.getElementById("success-message").textContent = message;
+                document.getElementById("success-popup").style.display = "block";
+            } else {
+                document.getElementById("error-message").textContent = message;
+                document.getElementById("error-popup").style.display = "block";
+            }
+        }
+
+        function closePopup() {
+            document.getElementById("error-popup").style.display = "none";
+        }
+
+        function redirectToThankYou() {
+            window.location.href = "/purchase/form/thank-you";
+        }
+
+        document.getElementById("quotation-form").addEventListener("submit", async function(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch(event.target.action, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    showPopup(result.message || "An error occurred.");
+                } else {
+                    showPopup("Quotation submitted successfully!", true);
+                    setTimeout(redirectToThankYou, 2000);
+                }
+            } catch (error) {
+                showPopup("Failed to submit the quotation.");
+            }
+        });
+    </script>
+</body>
+</html>
